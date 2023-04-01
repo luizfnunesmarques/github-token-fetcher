@@ -1,0 +1,67 @@
+name: "release"
+
+on:
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  pre-release:
+    name: "Pre Release"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - uses: actions/checkout@v3
+
+      - name: Build binaries
+        run: |
+          touch checksums.txt
+
+          OS=linux GOARCH=amd64 go build -o github-token-fetcher_linux_amd64
+          echo $(sha256sum github-token-fetcher_linux_amd64) > checksums.txt
+
+          OS=linux GOARCH=arm64 go build -o github-token-fetcher_linux_arm64
+          echo $(sha256sum github-token-fetcher_linux_arm64) > checksums.txt
+
+          OS=linux GOARCH=386 go build -o github-token-fetcher_linux_386
+          echo $(sha256sum github-token-fetcher_linux_386) > checksums.txt
+
+          OS=darwin GOARCH=amd64 go build -o github-token-fetcher_darwin_arm64
+          echo $(sha256sum github-token-fetcher_darwin_arm64) > checksums.txt
+
+          OS=darwin GOARCH=arm64 go build -o github-token-fetcher_darwin_arm64
+          echo $(sha256sum github-token-fetcher_darwin_arm64) > checksums.txt
+
+          OS=darwin GOARCH=386 go build -o github-token-fetcher_darwin_386
+          echo $(sha256sum github-token-fetcher_darwin_386) > checksums.txt
+
+          OS=windows GOARCH=amd64 go build -o github-token-fetcher_windows_arm64
+          echo $(sha256sum github-token-fetcher_windows_arm64) > checksums.txt
+
+          OS=windows GOARCH=arm go build -o github-token-fetcher_windows_arm
+          echo $(sha256sum github-token-fetcher_windows_arm) > checksums.txt
+
+          OS=windows GOARCH=386 go build -o github-token-fetcher_windows_386
+          echo $(sha256sum github-token-fetcher_windows_386) > checksums.txt
+
+      - uses: "marvinpinto/action-automatic-releases@v1.2.1"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          automatic_release_tag: ${{ github.ref_name}}
+          title: ${{ github.ref_name}}
+          files: |
+            github-token-fetcher_linux_amd64
+            github-token-fetcher_linux_arm64
+            github-token-fetcher_linux_386
+            github-token-fetcher_darwin_arm64
+            github-token-fetcher_darwin_386
+            github-token-fetcher_windows_arm64
+            github-token-fetcher_windows_arm
+            github-token-fetcher_windows_386
+
+            checksums.txt
